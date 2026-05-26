@@ -1,0 +1,8 @@
+opencv-python
+numpy
+mss
+pygetwindow
+pywin32
+pillow
+# future:
+# ultralytics
