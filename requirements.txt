@@ -4,5 +4,4 @@ mss
 pygetwindow
 pywin32
 pillow
-# future:
-# ultralytics
+ultralytics
