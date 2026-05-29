@@ -29,7 +29,8 @@ height = bottom - top
 # -----------------------------
 # Video folder
 # -----------------------------
-save_folder = "saved_videos"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+save_folder = os.path.join(script_dir, "..", "data", "saved_videos")
 os.makedirs(save_folder, exist_ok=True)
 
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

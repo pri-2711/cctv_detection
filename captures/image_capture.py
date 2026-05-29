@@ -46,7 +46,8 @@ img = Image.frombuffer(
 )
 
 # Create folder if not exists
-save_folder = "saved_captures"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+save_folder = os.path.join(script_dir, "..", "data", "saved_images")
 os.makedirs(save_folder, exist_ok=True)
 
 # Generate timestamp filename
