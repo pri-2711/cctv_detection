@@ -5,17 +5,29 @@ import ctypes
 import cv2
 import numpy as np
 import os
+import time
 from datetime import datetime
 
+# -----------------------------
+# Configuration
+# -----------------------------
 WINDOW_NAME = "BlueStacks App Player"
 
 OUTPUT_FOLDER = "data/detection_persons_images"
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
+COOLDOWN_SECONDS = 10
+
+# Dark Blue (BGR format)
+BOX_COLOR = (180, 60, 30)
+
+# -----------------------------
+# Load YOLO Model
+# -----------------------------
 model = YOLO("yolov8n.pt")
 
 # -----------------------------
-# Find Bluestacks
+# Find Bluestacks Window
 # -----------------------------
 hwnd = win32gui.FindWindow(None, WINDOW_NAME)
 
@@ -29,130 +41,169 @@ width = right - left
 height = bottom - top
 
 print("Monitoring started...")
+print("Press CTRL+C to stop.")
 
-while True:
+last_saved_time = 0
 
-    # -----------------------------
-    # Background Capture
-    # -----------------------------
-    hwndDC = win32gui.GetWindowDC(hwnd)
-    mfcDC = win32ui.CreateDCFromHandle(hwndDC)
-    saveDC = mfcDC.CreateCompatibleDC()
+try:
 
-    bitmap = win32ui.CreateBitmap()
-    bitmap.CreateCompatibleBitmap(mfcDC, width, height)
+    while True:
 
-    saveDC.SelectObject(bitmap)
+        # -----------------------------
+        # Background Capture
+        # -----------------------------
+        hwndDC = win32gui.GetWindowDC(hwnd)
+        mfcDC = win32ui.CreateDCFromHandle(hwndDC)
+        saveDC = mfcDC.CreateCompatibleDC()
 
-    result = ctypes.windll.user32.PrintWindow(
-        hwnd,
-        saveDC.GetSafeHdc(),
-        3
-    )
-
-    if result != 1:
-        continue
-
-    bmpinfo = bitmap.GetInfo()
-    bmpstr = bitmap.GetBitmapBits(True)
-
-    frame = np.frombuffer(
-        bmpstr,
-        dtype=np.uint8
-    )
-
-    frame = frame.reshape(
-        (
-            bmpinfo["bmHeight"],
-            bmpinfo["bmWidth"],
-            4
+        bitmap = win32ui.CreateBitmap()
+        bitmap.CreateCompatibleBitmap(
+            mfcDC,
+            width,
+            height
         )
-    )
 
-    frame = cv2.cvtColor(
-        frame,
-        cv2.COLOR_BGRA2BGR
-    )
+        saveDC.SelectObject(bitmap)
 
-    # -----------------------------
-    # YOLO Detection
-    # -----------------------------
-    results = model(frame, verbose=False)
+        result = ctypes.windll.user32.PrintWindow(
+            hwnd,
+            saveDC.GetSafeHdc(),
+            3
+        )
 
-    person_count = 0
+        if result != 1:
+            continue
 
-    for detection_result in results:
+        bmpinfo = bitmap.GetInfo()
+        bmpstr = bitmap.GetBitmapBits(True)
 
-        boxes = detection_result.boxes
+        frame = np.frombuffer(
+            bmpstr,
+            dtype=np.uint8
+        )
 
-        for box in boxes:
+        frame = frame.reshape(
+            (
+                bmpinfo["bmHeight"],
+                bmpinfo["bmWidth"],
+                4
+            )
+        )
 
-            class_id = int(box.cls[0])
-            confidence = float(box.conf[0])
+        frame = cv2.cvtColor(
+            frame,
+            cv2.COLOR_BGRA2BGR
+        )
 
-            class_name = model.names[class_id]
+        # -----------------------------
+        # YOLO Detection
+        # -----------------------------
+        results = model(
+            frame,
+            verbose=False
+        )
 
-            if class_name != "person":
-                continue
+        person_count = 0
 
-            person_count += 1
+        for detection_result in results:
 
-            x1, y1, x2, y2 = map(
-                int,
-                box.xyxy[0]
+            boxes = detection_result.boxes
+
+            for box in boxes:
+
+                class_id = int(box.cls[0])
+                confidence = float(box.conf[0])
+
+                class_name = model.names[class_id]
+
+                if class_name != "person":
+                    continue
+
+                person_count += 1
+
+                x1, y1, x2, y2 = map(
+                    int,
+                    box.xyxy[0]
+                )
+
+                # Bounding Box
+                cv2.rectangle(
+                    frame,
+                    (x1, y1),
+                    (x2, y2),
+                    BOX_COLOR,
+                    3
+                )
+
+                label = (
+                    f"Person {confidence:.2f}"
+                )
+
+                # Label
+                cv2.putText(
+                    frame,
+                    label,
+                    (x1, y1 - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    BOX_COLOR,
+                    2
+                )
+
+        # -----------------------------
+        # Save Detection Event
+        # -----------------------------
+        current_time = time.time()
+
+        if (
+            person_count > 0 and
+            current_time - last_saved_time >= COOLDOWN_SECONDS
+        ):
+
+            timestamp = datetime.now().strftime(
+                "%Y-%m-%d_%H-%M-%S"
             )
 
-            cv2.rectangle(
-                frame,
-                (x1, y1),
-                (x2, y2),
-                (0, 255, 0),
-                2
+            filename = (
+                f"{timestamp}_detected_person_image.png"
             )
 
-            label = f"Person {confidence:.2f}"
-
-            cv2.putText(
-                frame,
-                label,
-                (x1, y1 - 10),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                (0, 255, 0),
-                2
+            output_path = os.path.join(
+                OUTPUT_FOLDER,
+                filename
             )
 
-    # -----------------------------
-    # Detection Event
-    # -----------------------------
-    if person_count > 0:
+            cv2.imwrite(
+                output_path,
+                frame
+            )
 
-        timestamp = datetime.now().strftime(
-            "%Y-%m-%d_%H-%M-%S"
+            last_saved_time = current_time
+
+            print(
+                f"[{timestamp}] "
+                f"Persons Found: {person_count}"
+            )
+
+            print(
+                f"Saved: {output_path}"
+            )
+
+        # -----------------------------
+        # Cleanup
+        # -----------------------------
+        win32gui.DeleteObject(
+            bitmap.GetHandle()
         )
 
-        filename = (
-            f"{timestamp}_detected_person_image.png"
+        saveDC.DeleteDC()
+        mfcDC.DeleteDC()
+
+        win32gui.ReleaseDC(
+            hwnd,
+            hwndDC
         )
 
-        output_path = os.path.join(
-            OUTPUT_FOLDER,
-            filename
-        )
+except KeyboardInterrupt:
 
-        cv2.imwrite(
-            output_path,
-            frame
-        )
-
-        print(
-            f"Persons Found: {person_count}"
-        )
-
-    # -----------------------------
-    # Cleanup
-    # -----------------------------
-    win32gui.DeleteObject(bitmap.GetHandle())
-    saveDC.DeleteDC()
-    mfcDC.DeleteDC()
-    win32gui.ReleaseDC(hwnd, hwndDC)
+    print("\nMonitoring stopped.")
