@@ -1,66 +1,192 @@
 # AI CCTV Detection Extension (Local Surveillance Prototype)
 
-## Project Idea
-Build a **local AI surveillance layer** over a CCTV stream running via Bluestacks + ezyKam+.
+## Overview
 
-Pipeline (planned):
+AI-powered local surveillance system built on top of an existing CCTV stream accessed through **Bluestacks + ezyKam+**.
 
-CCTV → Bluestacks → Background capture → AI detection → Unknown person detection → Save suspicious clips locally
-
----
-
-## Possible Features
-- Detect humans in CCTV feed
-- Known vs unknown face identification
-- Ignore known family members
-- Detect masks / covered faces (optional)
-- Intrusion / restricted-area alerts
-- Save only suspicious clips locally
-- Timestamp logs
-- Notifications (future)
+The system captures CCTV frames locally, performs real-time computer vision analysis, identifies suspicious activity, and stores evidence without requiring cloud-based CCTV subscriptions.
 
 ---
 
-## Technologies (possible)
-- Python
-- OpenCV
-- MSS / pywin32
-- Bluestacks (Android emulator)
-- YOLO (person detection)
-- Face recognition models
-- NumPy
-- pygetwindow
-- Pillow
-- Windows APIs (`PrintWindow`)
-- Local storage (SQLite/filesystem)
+## High-Level Pipeline
+
+```text
+CCTV Camera
+      ↓
+ezyKam+
+      ↓
+Bluestacks
+      ↓
+Background Frame Capture
+      ↓
+Person Detection (YOLO)
+      ↓
+Person Tracking (ByteTrack)
+      ↓
+Zone Mapping / Virtual Fence
+      ↓
+Face Recognition
+      ↓
+Risk Assessment Engine
+      ↓
+Evidence Generation
+      ↓
+Local Storage & Alerts
+```
 
 ---
 
-## Current Progress
-### Working:
-- Installed Bluestacks
-- Installed ezyKam+ in Bluestacks
-- Logged into CCTV account
-- Accessed live CCTV feed
-- Tested screen capture methods
-- Implemented **background window capture**
-- Successfully captured Bluestacks while not actively focused
+## Architecture
 
-### Result:
-Proof that:
-
-Bluestacks → Python → Background capture
-
-works.
-
-This means AI inference on CCTV frames is feasible.
+```text
+Capture
+↓
+Detection
+↓
+Tracking
+↓
+Zone Mapping
+↓
+Face Recognition
+↓
+Risk Engine
+↓
+Recording & Alerts
+```
 
 ---
 
-## Next Steps
-1. Continuous frame extraction
-2. Human detection
-3. Face recognition
-4. Unknown-person filtering
-5. Clip storage
-6. Alerts
+## Core Concepts
+
+### Background Window Capture
+
+Capture CCTV frames directly from Bluestacks even when the application is running in the background.
+
+### Person Detection
+
+Detect human presence in CCTV footage using a lightweight YOLO model optimized for CPU inference.
+
+### Multi-Object Tracking
+
+Assign persistent IDs to detected individuals and track their movement across frames using ByteTrack.
+
+### Face Recognition
+
+Identify known individuals and distinguish them from unknown visitors using facial embeddings.
+
+### Zone Mapping
+
+Define custom zones such as:
+
+* Public Area
+* Entry Gate
+* Boundary Wall
+* Restricted Area
+* House Entrance
+
+and monitor movement between them.
+
+### Virtual Fence Detection
+
+Detect intrusion events such as:
+
+* Crossing restricted boundaries
+* Entering prohibited zones
+* Jumping walls
+* Unauthorized access attempts
+
+### Risk Engine
+
+Generate risk scores based on multiple factors:
+
+* Known vs Unknown Person
+* Restricted Area Access
+* Time of Day
+* Face Visibility
+* Movement Pattern
+* Zone Violations
+
+### Event-Based Recording
+
+Automatically save evidence clips only when meaningful events occur.
+
+### Local Evidence Storage
+
+Store:
+
+* Snapshots
+* Detection Events
+* Annotated Videos
+* Face Data
+* Tracking Information
+
+locally on the machine.
+
+---
+
+## Planned Features
+
+* Human Detection
+* Multi-Person Tracking
+* Known vs Unknown Face Recognition
+* Visitor Logging
+* Virtual Fence Detection
+* Zone-Based Monitoring
+* Suspicious Activity Detection
+* Event-Based Video Recording
+* Evidence Management
+* Local Database Integration
+* Alert System
+* Dashboard & Analytics
+* Adaptive Learning Enhancements (Future)
+
+---
+
+## Technologies
+
+### Computer Vision
+
+* OpenCV
+* YOLOv8
+* ByteTrack
+* InsightFace / ArcFace
+* NumPy
+
+### Capture Layer
+
+* pywin32
+* Windows PrintWindow API
+* Bluestacks
+* ezyKam+
+
+### Storage
+
+* MongoDB
+* MongoDB Compass
+* Local Filesystem Storage
+
+### Backend
+
+* Python
+
+### Future Extensions
+
+* Reinforcement Learning
+* Risk Scoring Engine
+* Notification Services
+* Web Dashboard
+
+---
+
+## Project Goals
+
+* Eliminate dependency on cloud CCTV subscriptions
+* Perform all processing locally
+* Detect and track people in real time
+* Identify unknown visitors
+* Detect intrusion events
+* Preserve only relevant evidence
+* Build an intelligent surveillance system capable of understanding activity rather than simply recording footage
+
+```
+```

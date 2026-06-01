@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Runtime data
+data/saved_images/*
+data/saved_videos/*
+data/detection_persons_images/*
+data/tracking_images/*
+
+# Keep folders but ignore contents
+!data/saved_images/.gitkeep
+!data/saved_videos/.gitkeep
+!data/detection_persons_images/.gitkeep
+!data/tracking_images/.gitkeep
+
+# YOLO weights
+yolov8n.pt
+
+# Logs
+*.log
+
+# Windows
+Thumbs.db
+Desktop.ini
