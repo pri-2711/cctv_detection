@@ -5,3 +5,8 @@ pygetwindow
 pywin32
 pillow
 ultralytics
+insightface
+onnxruntime-directml
+pandas
+joblib
+scikit-learn

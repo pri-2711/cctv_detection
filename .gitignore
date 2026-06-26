@@ -10,12 +10,14 @@ data/saved_images/*
 data/saved_videos/*
 data/detection_persons_images/*
 data/tracking_images/*
+data/known_faces/*
 
 # Keep folders but ignore contents
 !data/saved_images/.gitkeep
 !data/saved_videos/.gitkeep
 !data/detection_persons_images/.gitkeep
 !data/tracking_images/.gitkeep
+!data/known_faces/.gitkeep
 
 # YOLO weights
 yolov8n.pt
