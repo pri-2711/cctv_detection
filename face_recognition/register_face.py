@@ -1,13 +1,8 @@
 import os
 import cv2
 
-from embedding_generator import (
-    get_face_embedding
-)
-
-from face_database import (
-    save_embedding
-)
+from face_recognition.embedding_generator import get_face_embedding
+from face_recognition.face_database import save_embedding
 
 KNOWN_FACE_FOLDER = (
     "data/known_faces"

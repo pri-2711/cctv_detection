@@ -2,13 +2,8 @@ import cv2
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-from embedding_generator import (
-    get_face_embedding
-)
-
-from face_database import (
-    load_all_embeddings
-)
+from face_recognition.embedding_generator import get_face_embedding
+from face_recognition.face_database import load_all_embeddings
 
 SIMILARITY_THRESHOLD = 0.50
 
